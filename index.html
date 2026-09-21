@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brillas Como El Sol ✨</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Montserrat', sans-serif;
+      background-color: #030712;
+      color: #fff;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* Pantalla de inicio */
+    .start-screen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(to bottom, #38bdf8, #bae6fd, #fef08a);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      cursor: pointer;
+      transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), visibility 1s;
+    }
+
+    .start-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .start-icon {
+      font-size: 4.5rem;
+      margin-bottom: 20px;
+      animation: floatIcon 3s ease-in-out infinite alternate;
+      filter: drop-shadow(0 0 25px rgba(250, 204, 21, 0.8));
+    }
+
+    @keyframes floatIcon {
+      from { transform: translateY(0px) scale(0.95); }
+      to { transform: translateY(-14px) scale(1.05); }
+    }
+
+    .start-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+
+    .start-sub {
+      font-size: 1rem;
+      color: #334155;
+      margin-bottom: 30px;
+      max-width: 380px;
+      line-height: 1.5;
+    }
+
+    .start-btn {
+      padding: 16px 40px;
+      border-radius: 35px;
+      border: none;
+      background: #facc15;
+      color: #713f12;
+      font-weight: 600;
+      font-size: 1.05rem;
+      letter-spacing: 0.5px;
+      box-shadow: 0 10px 25px rgba(250, 204, 21, 0.5);
+      transition: all 0.3s ease;
+    }
+
+    .start-btn:hover {
+      background: #fde047;
+      transform: scale(1.06);
+    }
+
+    /* Tarjeta del Poema */
+    .ui-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 6vh;
+      pointer-events: none;
+    }
+
+    .card {
+      pointer-events: auto;
+      width: 90%;
+      max-width: 560px;
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      border-radius: 28px;
+      padding: 35px 28px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Estilos de tarjeta según ambiente */
+    .card.sunset-mode {
+      background: rgba(45, 20, 50, 0.75);
+      border-color: rgba(251, 146, 60, 0.4);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4), 0 0 25px rgba(251, 146, 60, 0.2);
+    }
+
+    .card.night-mode {
+      background: rgba(15, 23, 42, 0.82);
+      border-color: rgba(253, 224, 71, 0.35);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 35px rgba(253, 224, 71, 0.2);
+    }
+
+    .poem-content {
+      min-height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 25px;
+    }
+
+    .poem-verse {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem;
+      font-weight: 600;
+      line-height: 1.4;
+      color: #0f172a;
+      white-space: pre-line;
+      transition: opacity 0.5s ease, transform 0.5s ease, color 1s ease;
+    }
+
+    .card.sunset-mode .poem-verse {
+      color: #fed7aa;
+      text-shadow: 0 0 15px rgba(251, 146, 60, 0.4);
+    }
+
+    .card.night-mode .poem-verse {
+      color: #fef08a;
+      text-shadow: 0 0 20px rgba(254, 240, 138, 0.6);
+    }
+
+    .poem-verse.fade-out {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+
+    .poem-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      padding-top: 22px;
+      transition: border-color 1.2s ease;
+    }
+
+    .card.sunset-mode .poem-controls {
+      border-top-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .card.night-mode .poem-controls {
+      border-top-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .nav-btn {
+      background: #facc15;
+      border: none;
+      color: #713f12;
+      padding: 12px 26px;
+      border-radius: 22px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.92rem;
+      transition: all 0.3s ease;
+    }
+
+    .card.sunset-mode .nav-btn {
+      background: rgba(251, 146, 60, 0.3);
+      color: #ffedd5;
+      border: 1px solid rgba(251, 146, 60, 0.5);
+    }
+
+    .card.night-mode .nav-btn {
+      background: rgba(253, 224, 71, 0.2);
+      color: #fef08a;
+      border: 1px solid rgba(253, 224, 71, 0.4);
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .step-dots {
+      display: flex;
+      gap: 12px;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.18);
+      transition: all 0.5s ease;
+    }
+
+    .card.sunset-mode .dot,
+    .card.night-mode .dot {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .dot.active {
+      background: #eab308;
+      transform: scale(1.3);
+    }
+
+    .card.sunset-mode .dot.active {
+      background: #f97316;
+      box-shadow: 0 0 12px #f97316;
+    }
+
+    .card.night-mode .dot.active {
+      background: #fde047;
+      box-shadow: 0 0 14px #fde047;
+    }
+
+    .audio-toggle {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      z-index: 50;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.88);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.3rem;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+      transition: all 0.3s ease;
+    }
+
+    .audio-toggle:hover {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Pantalla de Inicio -->
+  <div class="start-screen" id="startScreen">
+    <div class="start-icon">🌻</div>
+    <h1 class="start-title">Un Poema para Ti</h1>
+    <p class="start-sub">Toca para abrir el campo de flores y escuchar el viento</p>
+    <button class="start-btn">Comenzar ✨</button>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <!-- Contenedor del Poema -->
+  <div class="ui-container">
+    <div class="card" id="card">
+      <div class="poem-content">
+        <p class="poem-verse" id="poemVerse"></p>
+      </div>
+      <div class="poem-controls">
+        <button class="nav-btn" id="prevBtn" disabled>Anterior</button>
+        <div class="step-dots">
+          <div class="dot active"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <button class="nav-btn" id="nextBtn">Siguiente</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="audio-toggle" id="audioToggle">🌬️</button>
+
+  <script>
+    // Versos del poema
+    const verses = [
+      "Tú sin tus pecados, brillas como el sol.",
+      "Tú con tus pecados, aún brillas como el sol.",
+      "Y cuando cae la noche,\ntu luz sigue iluminando todo a tu alrededor."
+    ];
+
+    let currentStep = 0;
+
+    // Elementos DOM
+    const startScreen = document.getElementById('startScreen');
+    const poemVerse = document.getElementById('poemVerse');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const card = document.getElementById('card');
+    const dots = document.querySelectorAll('.dot');
+    const audioToggle = document.getElementById('audioToggle');
+
+    poemVerse.textContent = verses[0];
+
+    // Web Audio API: Sonido de Brisa marina / Viento ambiental
+    let audioCtx = null;
+    let windGain = null;
+    let isMuted = false;
+
+    function initAudio() {
+      if (audioCtx) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+
+      // Ruido rosa para el viento
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+
+      for (let i = 0; i < bufferSize; i++) {
+        let white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+        output[i] *= 0.11;
+        b6 = white * 0.115926;
+      }
+
+      const whiteNoise = audioCtx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+      whiteNoise.loop = true;
+
+      // Filtro para suavizar el sonido del viento
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 400;
+
+      windGain = audioCtx.createGain();
+      windGain.gain.value = 0.18;
+
+      whiteNoise.connect(filter);
+      filter.connect(windGain);
+      windGain.connect(audioCtx.destination);
+
+      whiteNoise.start();
+    }
+
+    startScreen.addEventListener('click', () => {
+      startScreen.classList.add('hidden');
+      initAudio();
+    });
+
+    audioToggle.addEventListener('click', () => {
+      if (!audioCtx) initAudio();
+      isMuted = !isMuted;
+      if (windGain) {
+        windGain.gain.setValueAtTime(isMuted ? 0 : 0.18, audioCtx.currentTime);
+      }
+      audioToggle.textContent = isMuted ? "🔇" : "🌬️";
+    });
+
+    // Control de navegación del poema
+    function updateStep(newStep) {
+      if (newStep < 0 || newStep >= verses.length) return;
+      currentStep = newStep;
+
+      poemVerse.classList.add('fade-out');
+
+      setTimeout(() => {
+        poemVerse.textContent = verses[currentStep];
+        poemVerse.classList.remove('fade-out');
+
+        // Actualizar tarjeta
+        card.classList.remove('sunset-mode', 'night-mode');
+        if (currentStep === 1) card.classList.add('sunset-mode');
+        if (currentStep === 2) card.classList.add('night-mode');
+
+        // Actualizar botones
+        prevBtn.disabled = currentStep === 0;
+        nextBtn.disabled = currentStep === verses.length - 1;
+
+        // Puntos
+        dots.forEach((dot, idx) => {
+          dot.classList.toggle('active', idx === currentStep);
+        });
+      }, 400);
+    }
+
+    prevBtn.addEventListener('click', () => updateStep(currentStep - 1));
+    nextBtn.addEventListener('click', () => updateStep(currentStep + 1));
+
+    // CANVAS Y RENDERIZADO
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Valores de transición suave para el cielo (0: Día, 1: Atardecer, 2: Noche)
+    let transitionProgress = 0;
+
+    // Generar nubes (incluyendo nubes en espiral)
+    const clouds = [];
+    const numClouds = 16;
+    for (let i = 0; i < numClouds; i++) {
+      clouds.push({
+        x: Math.random() * window.innerWidth * 1.5 - window.innerWidth * 0.25,
+        y: Math.random() * (window.innerHeight * 0.35) + 30,
+        scale: Math.random() * 0.7 + 0.5,
+        speed: Math.random() * 0.25 + 0.1,
+        isSpiral: i % 6 === 0 // 1 de cada 6 nubes es en espiral
+      });
+    }
+
+    // Generar estrellas
+    const stars = [];
+    for (let i = 0; i < 120; i++) {
+      stars.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * (window.innerHeight * 0.6),
+        size: Math.random() * 2 + 0.8,
+        alpha: Math.random()
+      });
+    }
+
+    // Generar un campo DENSO de flores amarillas
+    const flowers = [];
+    const numFlowers = 320; // Campo repleto
+
+    for (let i = 0; i < numFlowers; i++) {
+      const depth = Math.random(); // 0 cerca de horizonte, 1 en primer plano
+      flowers.push({
+        x: Math.random() * window.innerWidth,
+        y: window.innerHeight * 0.52 + depth * (window.innerHeight * 0.48),
+        stemHeight: 40 + depth * 75,
+        flowerSize: 10 + depth * 18,
+        petalCount: 7 + Math.floor(Math.random() * 3),
+        phaseOffset: Math.random() * Math.PI * 2,
+        depth: depth
+      });
+    }
+
+    // Ordenar flores por profundidad para renderizado correcto
+    flowers.sort((a, b) => a.depth - b.depth);
+
+    // Animación principal
+    let time = 0;
+
+    function render() {
+      time += 0.02;
+
+      // Interpola transición hacia el paso actual (0, 1, 2)
+      transitionProgress += (currentStep - transitionProgress) * 0.03;
+
+      const dayFactor = Math.max(0, 1 - transitionProgress);
+      const sunsetFactor = 1 - Math.abs(transitionProgress - 1);
+      const nightFactor = Math.max(0, transitionProgress - 1);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 1. DIBUJAR CIELO
+      const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height * 0.65);
+
+      if (transitionProgress <= 1) {
+        // De Día (0) a Atardecer (1)
+        const t = transitionProgress;
+        skyGradient.addColorStop(0, `rgb(${Math.round(56 * (1-t) + 30 * t)}, ${Math.round(189 * (1-t) + 20 * t)}, ${Math.round(248 * (1-t) + 60 * t)})`);
+        skyGradient.addColorStop(0.5, `rgb(${Math.round(186 * (1-t) + 160 * t)}, ${Math.round(230 * (1-t) + 60 * t)}, ${Math.round(253 * (1-t) + 110 * t)})`);
+        skyGradient.addColorStop(1, `rgb(${Math.round(254 * (1-t) + 251 * t)}, ${Math.round(240 * (1-t) + 146 * t)}, ${Math.round(138 * (1-t) + 60 * t)})`);
+      } else {
+        // De Atardecer (1) a Noche (2)
+        const t = transitionProgress - 1;
+        skyGradient.addColorStop(0, `rgb(${Math.round(30 * (1-t) + 3 * t)}, ${Math.round(20 * (1-t) + 7 * t)}, ${Math.round(60 * (1-t) + 18 * t)})`);
+        skyGradient.addColorStop(0.5, `rgb(${Math.round(160 * (1-t) + 15 * t)}, ${Math.round(60 * (1-t) + 23 * t)}, ${Math.round(110 * (1-t) + 42 * t)})`);
+        skyGradient.addColorStop(1, `rgb(${Math.round(251 * (1-t) + 8 * t)}, ${Math.round(146 * (1-t) + 13 * t)}, ${Math.round(60 * (1-t) + 25 * t)})`);
+      }
+
+      ctx.fillStyle = skyGradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 2. ESTRELLAS (en la noche)
+      if (nightFactor > 0.05) {
+        ctx.save();
+        stars.forEach(star => {
+          ctx.globalAlpha = star.alpha * nightFactor * (0.6 + 0.4 * Math.sin(time * 2 + star.x));
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.restore();
+      }
+
+      // 3. SOL / LUNA
+      const sunMoonY = canvas.height * 0.22 + transitionProgress * (canvas.height * 0.08);
+
+      if (nightFactor < 0.9) {
+        // Sol (Día y Atardecer)
+        ctx.save();
+        ctx.globalAlpha = 1 - nightFactor;
+        const sunGlow = ctx.createRadialGradient(canvas.width * 0.5, sunMoonY, 15, canvas.width * 0.5, sunMoonY, 90);
+        sunGlow.addColorStop(0, '#fef08a');
+        sunGlow.addColorStop(0.4, `rgba(251, 146, 60, ${0.4 + sunsetFactor * 0.5})`);
+        sunGlow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+        ctx.fillStyle = sunGlow;
+        ctx.beginPath();
+        ctx.arc(canvas.width * 0.5, sunMoonY, 90, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#fffdf0';
+        ctx.beginPath();
+        ctx.arc(canvas.width * 0.5, sunMoonY, 28, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      if (nightFactor > 0.1) {
+        // Luna Llena (Noche)
+        ctx.save();
+        ctx.globalAlpha = nightFactor;
+        const moonGlow = ctx.createRadialGradient(canvas.width * 0.75, canvas.height * 0.18, 10, canvas.width * 0.75, canvas.height * 0.18, 70);
+        moonGlow.addColorStop(0, 'rgba(254, 240, 138, 0.9)');
+        moonGlow.addColorStop(0.5, 'rgba(254, 240, 138, 0.25)');
+        moonGlow.addColorStop(1, 'rgba(254, 240, 138, 0)');
+
+        ctx.fillStyle = moonGlow;
+        ctx.beginPath();
+        ctx.arc(canvas.width * 0.75, canvas.height * 0.18, 70, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#fefce8';
+        ctx.beginPath();
+        ctx.arc(canvas.width * 0.75, canvas.height * 0.18, 22, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 4. NUBES (Normales y Espirales)
+      ctx.save();
+      clouds.forEach(cloud => {
+        cloud.x += cloud.speed;
+        if (cloud.x > canvas.width + 150) cloud.x = -150;
+
+        ctx.globalAlpha = (0.75 - nightFactor * 0.45);
+        
+        // Color de la nube según hora
+        if (sunsetFactor > 0.3) {
+          ctx.fillStyle = `rgba(253, 186, 116, ${0.8 * sunsetFactor})`;
+        } else if (nightFactor > 0.5) {
+          ctx.fillStyle = 'rgba(51, 65, 85, 0.6)';
+        } else {
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        }
+
+        ctx.save();
+        ctx.translate(cloud.x, cloud.y);
+        ctx.scale(cloud.scale, cloud.scale);
+
+        if (cloud.isSpiral) {
+          // Nube con forma de Espiral Mágica
+          ctx.beginPath();
+          ctx.arc(0, 0, 25, 0, Math.PI * 2);
+          ctx.arc(22, -8, 20, 0, Math.PI * 2);
+          ctx.arc(-22, 5, 18, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Espiral sutil en el centro de la nube
+          ctx.strokeStyle = nightFactor > 0.5 ? 'rgba(254, 240, 138, 0.4)' : 'rgba(255, 255, 255, 0.9)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          let radius = 2;
+          let angle = 0;
+          for (let i = 0; i < 30; i++) {
+            radius += 0.6;
+            angle += 0.3;
+            let x = radius * Math.cos(angle);
+            let y = radius * Math.sin(angle);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+
+        } else {
+          // Nube estándar
+          ctx.beginPath();
+          ctx.arc(0, 0, 22, 0, Math.PI * 2);
+          ctx.arc(20, -10, 18, 0, Math.PI * 2);
+          ctx.arc(-20, 2, 16, 0, Math.PI * 2);
+          ctx.arc(38, 5, 14, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
+      });
+      ctx.restore();
+
+      // 5. TIERRAS Y SUELO DE CAMPO
+      const groundY = canvas.height * 0.5;
+      const groundGrad = ctx.createLinearGradient(0, groundY, 0, canvas.height);
+      groundGrad.addColorStop(0, `rgb(${Math.round(34 * dayFactor + 25 * sunsetFactor + 10 * nightFactor)}, ${Math.round(60 * dayFactor + 20 * sunsetFactor + 20 * nightFactor)}, ${Math.round(20 * dayFactor + 15 * sunsetFactor + 12 * nightFactor)})`);
+      groundGrad.addColorStop(1, `rgb(${Math.round(20 * dayFactor + 15 * sunsetFactor + 5 * nightFactor)}, ${Math.round(30 * dayFactor + 10 * sunsetFactor + 8 * nightFactor)}, ${Math.round(10 * dayFactor + 8 * sunsetFactor + 5 * nightFactor)})`);
+
+      ctx.fillStyle = groundGrad;
+      ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+
+      // 6. CAMPO REPLETO DE FLORES AMARILLAS Y PASTO
+      const windForce = Math.sin(time * 1.5) * 14 + Math.cos(time * 0.8) * 6;
+
+      // Modular audio de viento según intensidad del mecido
+      if (windGain && !isMuted && audioCtx) {
+        const targetGain = 0.12 + (Math.abs(windForce) / 20) * 0.12;
+        windGain.gain.setValueAtTime(targetGain, audioCtx.currentTime);
+      }
+
+      flowers.forEach(flower => {
+        const sway = Math.sin(time * 2 + flower.phaseOffset) * (6 + flower.depth * 10) + windForce * flower.depth;
+        const stemTopX = flower.x + sway;
+        const stemTopY = flower.y - flower.stemHeight;
+
+        // Tallo
+        ctx.strokeStyle = nightFactor > 0.5 ? '#143818' : '#2d6a4f';
+        ctx.lineWidth = 1.8 + flower.depth * 2;
+        ctx.beginPath();
+        ctx.moveTo(flower.x, flower.y);
+        ctx.quadraticCurveTo(flower.x + sway * 0.4, flower.y - flower.stemHeight * 0.5, stemTopX, stemTopY);
+        ctx.stroke();
+
+        // Resplandor de bioluminiscencia en la noche
+        if (nightFactor > 0.1) {
+          ctx.save();
+          ctx.globalAlpha = nightFactor * 0.7;
+          const glowRadius = flower.flowerSize * 2.2;
+          const glow = ctx.createRadialGradient(stemTopX, stemTopY, 2, stemTopX, stemTopY, glowRadius);
+          glow.addColorStop(0, 'rgba(254, 240, 138, 0.9)');
+          glow.addColorStop(0.5, 'rgba(250, 204, 21, 0.4)');
+          glow.addColorStop(1, 'rgba(250, 204, 21, 0)');
+
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(stemTopX, stemTopY, glowRadius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Pétalos de flor amarilla
+        ctx.fillStyle = nightFactor > 0.5 ? '#fef08a' : (sunsetFactor > 0.4 ? '#fde047' : '#facc15');
+        const angleStep = (Math.PI * 2) / flower.petalCount;
+
+        for (let i = 0; i < flower.petalCount; i++) {
+          const angle = i * angleStep + time * 0.2;
+          const px = stemTopX + Math.cos(angle) * flower.flowerSize;
+          const py = stemTopY + Math.sin(angle) * flower.flowerSize;
+
+          ctx.beginPath();
+          ctx.arc(px, py, flower.flowerSize * 0.42, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Centro de la flor
+        ctx.fillStyle = nightFactor > 0.5 ? '#854d0e' : '#713f12';
+        ctx.beginPath();
+        ctx.arc(stemTopX, stemTopY, flower.flowerSize * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      requestAnimationFrame(render);
+    }
+
+    render();
+  </script>
+</body>
+</html>
